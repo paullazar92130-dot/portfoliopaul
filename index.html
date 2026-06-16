@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paul Lazar — Portfolio</title>
+
+  <!-- Évite le flash de thème : applique le thème mémorisé avant le rendu -->
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem('pl-theme') || 'light'; } catch (e) {}</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
+  <!-- BIBLIOTHÈQUES (CDN) — React 18 + Framer Motion + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion@11.0.8/dist/framer-motion.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ── Palette sobre + thèmes jour / nuit ── */
+    :root, [data-theme="light"] {
+      --bg:#faf8f4; --surface:#f1ede7; --card:#f4f1eb;
+      --ink:#1c1916; --muted:#8b847b; --rule:#e3ded5; --accent:#9c7c54;
+      --shadow:0 1px 2px rgba(28,25,22,.04), 0 8px 30px rgba(28,25,22,.06);
+    }
+    [data-theme="dark"] {
+      --bg:#141210; --surface:#1d1916; --card:#1f1a16;
+      --ink:#f0ebe3; --muted:#9b938a; --rule:#2c2722; --accent:#c4a47b;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 30px rgba(0,0,0,.4);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { overflow-x:hidden; background:var(--bg); color:var(--ink);
+      font-family:'DM Sans',sans-serif; font-weight:300; -webkit-font-smoothing:antialiased;
+      transition:background .45s ease, color .45s ease; }
+
+    .navlinks a { font-size:.78rem; font-weight:400; letter-spacing:.08em; text-transform:uppercase;
+      color:var(--muted); text-decoration:none; transition:color .2s; }
+    .navlinks a:hover { color:var(--ink); }
+    .burger { display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px; }
+    .burger span { display:block; width:22px; height:1px; background:var(--ink); transition:all .25s; }
+
+    .icon-btn { display:inline-grid; place-items:center; width:38px; height:38px; border-radius:50%;
+      border:1px solid var(--rule); background:var(--card); color:var(--ink); cursor:pointer; transition:border-color .2s, transform .2s; }
+    .icon-btn:hover { border-color:var(--ink); transform:translateY(-1px); }
+
+    .cta { display:inline-flex; align-items:center; gap:.5rem; font-size:.85rem; font-weight:500;
+      text-decoration:none; cursor:pointer; font-family:inherit; transition:transform .18s, border-color .2s, background .25s, color .25s; }
+    .cta-solid { background:var(--ink); color:var(--bg); border:1px solid var(--ink); padding:.7rem 1.15rem; border-radius:4px; }
+    .cta-solid:hover { transform:translateY(-2px); }
+    .cta-ghost { background:transparent; color:var(--ink); border:1px solid var(--rule); padding:.7rem 1.15rem; border-radius:4px; }
+    .cta-ghost:hover { border-color:var(--ink); transform:translateY(-2px); }
+
+    .contact-card { display:flex; align-items:center; gap:1rem; padding:1.15rem 1.25rem; border:1px solid var(--rule);
+      border-radius:6px; background:var(--card); text-decoration:none; color:var(--ink);
+      transition:transform .2s, border-color .2s, box-shadow .25s; }
+    .contact-card:hover { transform:translateY(-3px); border-color:var(--ink); box-shadow:var(--shadow); }
+
+    .skill-card { background:var(--card); border:1px solid var(--rule); border-radius:6px; padding:1.1rem 1.25rem; }
+
+    .project-card { display:flex; flex-direction:column; background:var(--card); border:1px solid var(--rule); border-radius:8px;
+      padding:1.6rem; min-height:230px; transition:transform .25s, border-color .2s, box-shadow .25s; }
+    .project-card:hover { transform:translateY(-3px); border-color:var(--ink); box-shadow:var(--shadow); }
+
+    .veille-banner { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; flex-wrap:wrap;
+      padding:2rem 2.2rem; border:1px solid var(--rule); border-radius:10px; background:var(--card); text-decoration:none;
+      color:var(--ink); transition:transform .25s, border-color .2s, box-shadow .25s; }
+    .veille-banner:hover { transform:translateY(-3px); border-color:var(--ink); box-shadow:var(--shadow); }
+    .veille-banner:hover .vb-arrow { transform:translateX(4px); }
+    .vb-arrow { transition:transform .25s; }
+
+    .footer-link { color:var(--muted); text-decoration:none; transition:color .2s; }
+    .footer-link:hover { color:var(--ink); }
+
+    @media(max-width:760px){
+      .navlinks { display:none!important; }
+      .burger { display:flex!important; }
+      .grid-2 { grid-template-columns:1fr!important; }
+      .grid-3 { grid-template-columns:1fr!important; }
+      .stats-row { grid-template-columns:1fr 1fr!important; }
+    }
+    @media(min-width:761px) and (max-width:980px){
+      .grid-3 { grid-template-columns:1fr 1fr!important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef } = React;
+    const { motion, useInView, useMotionValue, useSpring, AnimatePresence } = Motion;
+
+    /* ════════ THÈME jour / nuit ════════ */
+    function useTheme() {
+      const [theme, setTheme] = useState(() => {
+        try { return localStorage.getItem('pl-theme') || 'light'; } catch (e) { return 'light'; }
+      });
+      useEffect(() => {
+        document.documentElement.dataset.theme = theme;
+        try { localStorage.setItem('pl-theme', theme); } catch (e) {}
+      }, [theme]);
+      return [theme, () => setTheme(t => (t === 'light' ? 'dark' : 'light'))];
+    }
+
+    /* ════════ ICÔNES (SVG, currentColor) ════════ */
+    const I = {
+      mail: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>,
+      linkedin: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.5 8h4V21h-4V8zm7 0h3.8v1.78h.05c.53-1 1.82-2.05 3.75-2.05 4 0 4.75 2.64 4.75 6.07V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.08 1.4-2.08 2.85V21h-4V8z"/></svg>,
+      github: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5A10.5 10.5 0 0 0 1.5 12c0 4.64 3.01 8.57 7.18 9.96.53.1.72-.23.72-.51v-1.8c-2.92.63-3.54-1.4-3.54-1.4-.48-1.21-1.17-1.54-1.17-1.54-.96-.65.07-.64.07-.64 1.06.08 1.62 1.09 1.62 1.09.94 1.62 2.47 1.15 3.07.88.1-.68.37-1.15.67-1.41-2.33-.27-4.78-1.17-4.78-5.18 0-1.15.41-2.08 1.08-2.82-.11-.27-.47-1.34.1-2.79 0 0 .88-.28 2.88 1.07a9.9 9.9 0 0 1 5.24 0c2-1.35 2.88-1.07 2.88-1.07.57 1.45.21 2.52.1 2.79.67.74 1.08 1.67 1.08 2.82 0 4.02-2.46 4.9-4.8 5.16.38.33.71.97.71 1.96v2.9c0 .28.19.62.73.51A10.5 10.5 0 0 0 22.5 12 10.5 10.5 0 0 0 12 1.5z"/></svg>,
+      copy: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>,
+      check: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m4 12 5 5L20 6"/></svg>,
+      download: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>,
+      arrow: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>,
+      pin: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>,
+      sun: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>,
+      moon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>,
+    };
+
+    /* ════════ REACT BITS ════════ */
+    function SplitText({ text, delay = 0, once = true, style = {} }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once });
+      const chars = text.split("");
+      return (
+        <span ref={ref} aria-label={text} style={{ display: "inline-block", ...style }}>
+          {chars.map((ch, i) => (
+            <motion.span key={i} style={{ display: "inline-block", whiteSpace: ch === " " ? "pre" : "normal" }}
+              initial={{ opacity: 0, y: "110%" }}
+              animate={inView ? { opacity: 1, y: "0%" } : {}}
+              transition={{ duration: 0.6, delay: delay + i * 0.04, ease: [0.22, 1, 0.36, 1] }}>
+              {ch}
+            </motion.span>
+          ))}
+        </span>
+      );
+    }
+
+    function BlurText({ text, delay = 0, once = true, style = {} }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once });
+      const words = text.split(" ");
+      return (
+        <span ref={ref} aria-label={text} style={style}>
+          {words.map((word, i) => (
+            <motion.span key={i} style={{ display: "inline-block", marginRight: "0.28em" }}
+              initial={{ opacity: 0, filter: "blur(12px)", y: 8 }}
+              animate={inView ? { opacity: 1, filter: "blur(0px)", y: 0 } : {}}
+              transition={{ duration: 0.55, delay: delay + i * 0.05, ease: [0.22, 1, 0.36, 1] }}>
+              {word}
+            </motion.span>
+          ))}
+        </span>
+      );
+    }
+
+    function CountUp({ to, suffix = "", duration = 1.6 }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true });
+      const [val, setVal] = useState(0);
+      useEffect(() => {
+        if (!inView) return;
+        let start = null;
+        const step = (ts) => {
+          if (!start) start = ts;
+          const p = Math.min((ts - start) / (duration * 1000), 1);
+          setVal(Math.floor((1 - Math.pow(1 - p, 3)) * to));
+          if (p < 1) requestAnimationFrame(step); else setVal(to);
+        };
+        requestAnimationFrame(step);
+      }, [inView, to, duration]);
+      return <span ref={ref}>{val}{suffix}</span>;
+    }
+
+    function ScrollReveal({ children, delay = 0, direction = "up" }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once: true, margin: "-60px" });
+      const initial = { up:{opacity:0,y:24}, left:{opacity:0,x:-24}, right:{opacity:0,x:24} }[direction];
+      return (
+        <motion.div ref={ref} initial={initial} animate={inView ? { opacity:1, y:0, x:0 } : initial}
+          transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}>
+          {children}
+        </motion.div>
+      );
+    }
+
+    function Aurora() {
+      return (
+        <div style={{ position:"absolute", inset:0, overflow:"hidden", zIndex:0, pointerEvents:"none" }}>
+          {[
+            { color:"var(--accent)", x:"8%", y:"15%", size:"55%", dur:16, o:0.16 },
+            { color:"var(--accent)", x:"75%", y:"35%", size:"48%", dur:20, o:0.10 },
+            { color:"var(--accent)", x:"45%", y:"85%", size:"45%", dur:24, o:0.08 },
+          ].map((b, i) => (
+            <motion.div key={i} style={{ position:"absolute", left:b.x, top:b.y, width:b.size, height:b.size,
+              borderRadius:"50%", background:`radial-gradient(circle, ${b.color}, transparent 70%)`,
+              opacity:b.o, transform:"translate(-50%,-50%)", filter:"blur(50px)" }}
+              animate={{ x:[0,30,-20,0], y:[0,-25,15,0], scale:[1,1.1,0.95,1] }}
+              transition={{ duration:b.dur, repeat:Infinity, ease:"easeInOut" }} />
+          ))}
+        </div>
+      );
+    }
+
+    function Magnet({ children, strength = 0.25 }) {
+      const ref = useRef(null);
+      const x = useMotionValue(0), y = useMotionValue(0);
+      const sx = useSpring(x, { stiffness:200, damping:18 });
+      const sy = useSpring(y, { stiffness:200, damping:18 });
+      return (
+        <motion.div ref={ref} style={{ x:sx, y:sy, display:"inline-block" }}
+          onMouseMove={(e) => { const r = ref.current.getBoundingClientRect();
+            x.set((e.clientX - (r.left+r.width/2))*strength); y.set((e.clientY - (r.top+r.height/2))*strength); }}
+          onMouseLeave={() => { x.set(0); y.set(0); }}>
+          {children}
+        </motion.div>
+      );
+    }
+
+    /* ════════ DONNÉES ════════ */
+    const SKILLS = [
+      { name:"HTML5", pct:75, level:"Intermédiaire" },
+      { name:"CSS3",  pct:65, level:"Intermédiaire" },
+      { name:"Java",  pct:55, level:"Débutant +" },
+      { name:"Git",   pct:40, level:"Débutant" },
+    ];
+
+    const STATS = [
+      { to:3, suffix:"", label:"Projets réalisés" },
+      { to:4, suffix:"", label:"Technologies" },
+      { to:1, suffix:"ʳᵉ", label:"Année BTS" },
+      { to:2026, suffix:"", label:"Promotion" },
+    ];
+
+    const PROJECTS = [
+      { idx:"01", name:"Site Web HTML / CSS", desc:"Conception d'un site structuré avec une attention portée à la sémantique, la mise en page et la compatibilité multi-écrans.", tags:["HTML","CSS"] },
+      { idx:"02", name:"Flappy Bird", desc:"Recréation du jeu culte en Java — gravité, collisions, obstacles générés aléatoirement et gestion du score.", tags:["Java","POO","Game Dev"] },
+      { idx:"03", name:"Animations CSS", desc:"Exploration des transitions, keyframes et effets CSS pour enrichir l'interface et l'expérience utilisateur.", tags:["CSS","Animation"] },
+    ];
+
+    /* ════════ STYLES (inline, via variables CSS) ════════ */
+    const C = { bg:"var(--bg)", ink:"var(--ink)", muted:"var(--muted)", rule:"var(--rule)", card:"var(--card)", accent:"var(--accent)" };
+    const s = {
+      page: { minHeight:"100vh" },
+      wrap: { maxWidth:1180, margin:"0 auto", padding:"0 2rem" },
+
+      nav: { position:"fixed", top:0, left:0, right:0, zIndex:100, background:"var(--bg)", borderBottom:`1px solid ${C.rule}`, backdropFilter:"saturate(180%) blur(6px)" },
+      navInner: { display:"flex", justifyContent:"space-between", alignItems:"center", height:60, gap:"1.5rem" },
+      logo: { fontFamily:"'DM Serif Display',serif", fontSize:"1.15rem", letterSpacing:"-0.01em", color:C.ink, textDecoration:"none" },
+
+      hero: { position:"relative", overflow:"hidden", padding:"150px 0 90px", borderBottom:`1px solid ${C.rule}` },
+      eyebrow: { display:"inline-flex", alignItems:"center", gap:"0.7rem", fontSize:"0.72rem", letterSpacing:"0.14em", textTransform:"uppercase", color:C.muted, marginBottom:"1.6rem" },
+      name: { fontFamily:"'DM Serif Display',serif", fontWeight:400, lineHeight:0.95, letterSpacing:"-0.03em", fontSize:"clamp(3.4rem, 13vw, 9.5rem)", color:C.ink },
+      role: { fontFamily:"'DM Sans',sans-serif", fontSize:"clamp(1rem,3.2vw,1.5rem)", fontWeight:400, color:C.accent, letterSpacing:"0.01em", marginTop:"0.4rem" },
+      heroDesc: { maxWidth:560, fontSize:"clamp(0.95rem,2.4vw,1.08rem)", color:C.muted, lineHeight:1.75, margin:"1.8rem 0 2.2rem" },
+      heroActions: { display:"flex", alignItems:"center", gap:"0.9rem", flexWrap:"wrap" },
+
+      statsRow: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"1px", background:C.rule, border:`1px solid ${C.rule}`, borderRadius:8, overflow:"hidden", marginTop:"4rem" },
+      statCell: { background:"var(--bg)", padding:"1.4rem 1.3rem" },
+      statNum: { fontFamily:"'DM Serif Display',serif", fontSize:"clamp(1.8rem,5vw,2.6rem)", color:C.ink, lineHeight:1 },
+      statLabel: { fontSize:"0.72rem", letterSpacing:"0.08em", textTransform:"uppercase", color:C.muted, marginTop:"0.45rem" },
+
+      section: { padding:"90px 0", borderBottom:`1px solid ${C.rule}` },
+      secHead: { display:"flex", alignItems:"baseline", gap:"1rem", marginBottom:"3rem" },
+      secNum: { fontSize:"0.7rem", letterSpacing:"0.15em", textTransform:"uppercase", color:C.accent, fontWeight:500 },
+      secTitle: { fontFamily:"'DM Serif Display',serif", fontSize:"clamp(1.6rem,4.5vw,2.3rem)", fontWeight:400, letterSpacing:"-0.02em", color:C.ink },
+
+      aboutP: { fontSize:"1rem", color:C.muted, lineHeight:1.85, marginBottom:"1.1rem" },
+      metaRow: { display:"flex", justifyContent:"space-between", alignItems:"baseline", padding:"1rem 0", borderBottom:`1px solid ${C.rule}`, gap:"1rem" },
+      metaKey: { fontSize:"0.74rem", letterSpacing:"0.08em", textTransform:"uppercase", color:C.muted },
+      metaVal: { fontSize:"0.92rem", color:C.ink, textAlign:"right" },
+
+      skillTop: { display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:"0.9rem" },
+      skillName: { fontSize:"1rem", fontWeight:500, color:C.ink },
+      skillLevel: { fontSize:"0.75rem", color:C.muted },
+      skillTrack: { height:3, background:C.rule, borderRadius:3, position:"relative", overflow:"hidden" },
+
+      projIdx: { fontSize:"0.72rem", color:C.accent, fontWeight:500, letterSpacing:"0.1em" },
+      projName: { fontFamily:"'DM Serif Display',serif", fontSize:"1.35rem", fontWeight:400, letterSpacing:"-0.01em", margin:"0.8rem 0 0.7rem", color:C.ink },
+      projDesc: { fontSize:"0.88rem", color:C.muted, lineHeight:1.65, flex:1 },
+      tagsRow: { display:"flex", flexWrap:"wrap", gap:"0.4rem", marginTop:"1.1rem" },
+      tag: { fontSize:"0.66rem", letterSpacing:"0.05em", textTransform:"uppercase", color:C.muted, background:"var(--surface)", padding:"0.25rem 0.6rem", borderRadius:3 },
+
+      cardIcon: { display:"grid", placeItems:"center", width:46, height:46, borderRadius:10, background:"var(--surface)", color:C.ink, flexShrink:0 },
+      cardLabel: { fontSize:"0.92rem", fontWeight:500, color:C.ink },
+      cardVal: { fontSize:"0.76rem", color:C.muted, marginTop:"0.15rem", wordBreak:"break-all" },
+
+      footer: { padding:"2.2rem 0" },
+      footerInner: { display:"flex", justifyContent:"space-between", alignItems:"center", gap:"1rem", flexWrap:"wrap" },
+      footerText: { fontSize:"0.74rem", color:C.muted },
+    };
+
+    /* ════════ NAV ════════ */
+    function Nav({ theme, toggle }) {
+      const [open, setOpen] = useState(false);
+      const links = [["#profil","Profil"],["#skills","Compétences"],["#projets","Projets"],["veille.html","Veille"],["#contact","Contact"]];
+      return (
+        <React.Fragment>
+          <nav style={s.nav}>
+            <div style={{ ...s.wrap, ...s.navInner }}>
+              <a href="#top" style={s.logo}>Paul Lazar</a>
+              <div style={{ display:"flex", alignItems:"center", gap:"1.6rem" }}>
+                <ul className="navlinks" style={{ display:"flex", gap:"1.6rem", listStyle:"none" }}>
+                  {links.map(([h,l]) => <li key={h}><a href={h}>{l}</a></li>)}
+                </ul>
+                <button className="icon-btn" onClick={toggle} aria-label="Changer de thème" title="Mode jour / nuit">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={theme} initial={{ rotate:-40, opacity:0 }} animate={{ rotate:0, opacity:1 }} exit={{ rotate:40, opacity:0 }} transition={{ duration:0.25 }} style={{ display:"grid", placeItems:"center" }}>
+                      {theme === "light" ? I.moon : I.sun}
+                    </motion.span>
+                  </AnimatePresence>
+                </button>
+                <button className="burger" onClick={() => setOpen(o => !o)} aria-label="Menu">
+                  <motion.span animate={open ? { rotate:45, y:6 } : { rotate:0, y:0 }} />
+                  <motion.span animate={open ? { opacity:0 } : { opacity:1 }} />
+                  <motion.span animate={open ? { rotate:-45, y:-6 } : { rotate:0, y:0 }} />
+                </button>
+              </div>
+            </div>
+          </nav>
+          <AnimatePresence>
+            {open && (
+              <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+                style={{ position:"fixed", top:60, left:0, right:0, bottom:0, background:"var(--bg)", zIndex:99, display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", gap:"2.2rem" }}>
+                {links.map(([h,l], i) => (
+                  <motion.a key={h} href={h} onClick={() => setOpen(false)}
+                    initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:16 }} transition={{ delay:i*0.06 }}
+                    style={{ fontFamily:"'DM Serif Display',serif", fontSize:"2rem", color:C.ink, textDecoration:"none" }}>{l}</motion.a>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </React.Fragment>
+      );
+    }
+
+    /* ════════ SKILL CARD ════════ */
+    function SkillCard({ name, pct, level, delay }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once:true });
+      return (
+        <motion.div ref={ref} className="skill-card"
+          initial={{ opacity:0, y:18 }} animate={inView ? { opacity:1, y:0 } : {}} transition={{ duration:0.5, delay }}>
+          <div style={s.skillTop}>
+            <span style={s.skillName}>{name}</span>
+            <span style={s.skillLevel}>{level}</span>
+          </div>
+          <div style={s.skillTrack}>
+            <motion.div style={{ position:"absolute", inset:0, width:0, background:C.accent, borderRadius:3 }}
+              initial={{ width:0 }} animate={inView ? { width:`${pct}%` } : {}} transition={{ duration:1.2, delay:delay+0.2, ease:[0.22,1,0.36,1] }} />
+          </div>
+        </motion.div>
+      );
+    }
+
+    /* ════════ CARTE PROJET ════════ */
+    function ProjectCard({ p, i }) {
+      const ref = useRef(null);
+      const inView = useInView(ref, { once:true, margin:"-60px" });
+      return (
+        <motion.div ref={ref} className="project-card"
+          initial={{ opacity:0, y:24 }} animate={inView ? { opacity:1, y:0 } : {}} transition={{ duration:0.6, delay:i*0.08, ease:[0.22,1,0.36,1] }}>
+          <span style={s.projIdx}>{p.idx}</span>
+          <div style={s.projName}>{p.name}</div>
+          <p style={s.projDesc}>{p.desc}</p>
+          <div style={s.tagsRow}>{p.tags.map(t => <span key={t} style={s.tag}>{t}</span>)}</div>
+        </motion.div>
+      );
+    }
+
+    /* ════════ CARTE CONTACT ════════ */
+    function ContactCard({ icon, label, value, href }) {
+      return (
+        <a className="contact-card" href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noopener">
+          <span style={s.cardIcon}>{icon}</span>
+          <span style={{ flex:1, minWidth:0 }}>
+            <span style={{ ...s.cardLabel, display:"block" }}>{label}</span>
+            <span style={{ ...s.cardVal, display:"block" }}>{value}</span>
+          </span>
+          <span style={{ color:C.muted }}>{I.arrow}</span>
+        </a>
+      );
+    }
+
+    /* ════════ BOUTON COPIER ════════ */
+    function CopyEmail({ email }) {
+      const [done, setDone] = useState(false);
+      return (
+        <button className="cta cta-ghost" onClick={() => {
+          navigator.clipboard?.writeText(email).then(() => { setDone(true); setTimeout(() => setDone(false), 1800); });
+        }}>
+          {done ? I.check : I.copy}
+          {done ? "Adresse copiée !" : "Copier l'e-mail"}
+        </button>
+      );
+    }
+
+    /* ════════ PAGE ════════ */
+    function App() {
+      const [theme, toggle] = useTheme();
+      const EMAIL = "paullazar92130@gmail.com";
+      const LINKEDIN = "https://www.linkedin.com/in/paul-lazar-08548a291";
+      const GITHUB = "https://github.com";
+
+      return (
+        <div id="top" style={s.page}>
+          <Nav theme={theme} toggle={toggle} />
+
+          {/* HERO */}
+          <header style={s.hero}>
+            <Aurora />
+            <div style={{ ...s.wrap, position:"relative", zIndex:1 }}>
+              <motion.div style={s.eyebrow} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ duration:0.8 }}>
+                <span style={{ width:32, height:1, background:C.rule }} /> Portfolio · BTS SIO SLAM
+              </motion.div>
+
+              <h1 style={{ margin:0 }}>
+                <span style={{ display:"block", overflow:"hidden" }}>
+                  <SplitText text="Paul" delay={0.1} style={s.name} />
+                </span>
+                <span style={{ display:"block", overflow:"hidden" }}>
+                  <SplitText text="Lazar." delay={0.35} style={s.name} />
+                </span>
+              </h1>
+
+              {/* petite ligne d'accent animée sous le nom */}
+              <motion.div initial={{ scaleX:0 }} animate={{ scaleX:1 }} transition={{ duration:0.9, delay:0.9, ease:[0.22,1,0.36,1] }}
+                style={{ transformOrigin:"left", height:3, width:140, background:C.accent, borderRadius:3, margin:"1.4rem 0" }} />
+
+              <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:1, duration:0.6 }} style={s.role}>
+                Développeur en devenir
+              </motion.div>
+
+              <BlurText delay={1.15} style={{ ...s.heroDesc, display:"block" }}
+                text="J'apprends à construire des choses avec du code — des interfaces web soignées aux mini-jeux en Java. Passionné par la logique, le design et l'identité numérique." />
+
+              <motion.div style={s.heroActions} initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:1.4, duration:0.5 }}>
+                <Magnet><a className="cta cta-solid" href="#projets">Voir mes projets {I.arrow}</a></Magnet>
+                <a className="cta cta-ghost" href="#contact">Me contacter</a>
+              </motion.div>
+
+              {/* STATS */}
+              <ScrollReveal delay={0.1}>
+                <div className="stats-row" style={s.statsRow}>
+                  {STATS.map((st, i) => (
+                    <div key={i} style={s.statCell}>
+                      <div style={s.statNum}><CountUp to={st.to} suffix={st.suffix} /></div>
+                      <div style={s.statLabel}>{st.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollReveal>
+            </div>
+          </header>
+
+          {/* PROFIL */}
+          <section id="profil" style={s.section}>
+            <div style={s.wrap}>
+              <ScrollReveal>
+                <div style={s.secHead}><span style={s.secNum}>01</span><h2 style={s.secTitle}>Profil</h2></div>
+              </ScrollReveal>
+              <div className="grid-2" style={{ display:"grid", gridTemplateColumns:"1.3fr 1fr", gap:"4rem", alignItems:"start" }}>
+                <ScrollReveal delay={0.1}>
+                  <p style={s.aboutP}>Je suis <strong style={{ color:C.ink, fontWeight:500 }}>Paul Lazar</strong>, étudiant en <strong style={{ color:C.ink, fontWeight:500 }}>BTS SIO option SLAM</strong> en première année. Le développement m'attire depuis longtemps — j'aime comprendre comment les choses fonctionnent et les construire moi-même.</p>
+                  <p style={s.aboutP}>Mon objectif : progresser continuellement, explorer de nouveaux langages et contribuer à des projets qui ont du sens.</p>
+                </ScrollReveal>
+                <ScrollReveal delay={0.2}>
+                  <div>
+                    {[["Formation","BTS SIO SLAM"],["Année","1ʳᵉ année"],["Localisation","Île-de-France"],["Disponibilité","Stage à venir"]].map(([k,v]) => (
+                      <div key={k} style={s.metaRow}><span style={s.metaKey}>{k}</span><span style={s.metaVal}>{v}</span></div>
+                    ))}
+                  </div>
+                </ScrollReveal>
+              </div>
+            </div>
+          </section>
+
+          {/* COMPÉTENCES */}
+          <section id="skills" style={s.section}>
+            <div style={s.wrap}>
+              <ScrollReveal>
+                <div style={s.secHead}><span style={s.secNum}>02</span><h2 style={s.secTitle}>Compétences</h2></div>
+              </ScrollReveal>
+              <div className="grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1.2rem" }}>
+                {SKILLS.map((sk, i) => <SkillCard key={sk.name} {...sk} delay={i*0.08} />)}
+              </div>
+            </div>
+          </section>
+
+          {/* PROJETS */}
+          <section id="projets" style={s.section}>
+            <div style={s.wrap}>
+              <ScrollReveal>
+                <div style={s.secHead}><span style={s.secNum}>03</span><h2 style={s.secTitle}>Projets</h2></div>
+              </ScrollReveal>
+              <div className="grid-3" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"1.2rem" }}>
+                {PROJECTS.map((p, i) => <ProjectCard key={p.idx} p={p} i={i} />)}
+              </div>
+
+              {/* Bannière cliquable -> page Veille */}
+              <ScrollReveal delay={0.15}>
+                <a className="veille-banner" href="veille.html" style={{ marginTop:"1.6rem" }}>
+                  <span>
+                    <span style={{ ...s.secNum, display:"block", marginBottom:"0.6rem" }}>Veille technologique</span>
+                    <span style={{ fontFamily:"'DM Serif Display',serif", fontSize:"clamp(1.3rem,3.5vw,1.8rem)", color:C.ink, display:"block", lineHeight:1.15 }}>Yoti — l'identité numérique &amp; l'IA</span>
+                    <span style={{ fontSize:"0.9rem", color:C.muted, display:"block", marginTop:"0.5rem", maxWidth:520 }}>Cliquez pour ouvrir ma présentation complète sur l'estimation d'âge par intelligence artificielle.</span>
+                  </span>
+                  <span className="cta cta-solid" style={{ pointerEvents:"none" }}>Ouvrir la veille <span className="vb-arrow" style={{ display:"inline-flex" }}>{I.arrow}</span></span>
+                </a>
+              </ScrollReveal>
+            </div>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contact" style={s.section}>
+            <div style={s.wrap}>
+              <ScrollReveal>
+                <div style={s.secHead}><span style={s.secNum}>04</span><h2 style={s.secTitle}>Travaillons ensemble</h2></div>
+              </ScrollReveal>
+              <div className="grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1.4fr", gap:"4rem", alignItems:"start" }}>
+                <ScrollReveal delay={0.1}>
+                  <div>
+                    <p style={{ ...s.aboutP, marginBottom:"1.6rem" }}>Une question, une opportunité de stage, ou simplement envie d'échanger ? Choisissez le canal qui vous convient — je réponds rapidement.</p>
+                    <div style={{ display:"flex", gap:"0.8rem", flexWrap:"wrap" }}>
+                      <a className="cta cta-solid" href={`mailto:${EMAIL}`}>{I.mail} M'écrire un e-mail</a>
+                      <CopyEmail email={EMAIL} />
+                    </div>
+                    <a className="cta cta-ghost" href="cv.pdf" download style={{ marginTop:"0.8rem" }}>{I.download} Télécharger mon CV</a>
+                  </div>
+                </ScrollReveal>
+                <ScrollReveal delay={0.2}>
+                  <div className="grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.9rem" }}>
+                    <ContactCard icon={I.mail} label="E-mail" value="paullazar92130@gmail.com" href={`mailto:${EMAIL}`} />
+                    <ContactCard icon={I.linkedin} label="LinkedIn" value="in/paul-lazar" href={LINKEDIN} />
+                    <ContactCard icon={I.github} label="GitHub" value="github.com/paullazar" href={GITHUB} />
+                    <ContactCard icon={I.pin} label="Localisation" value="Île-de-France, FR" href="#contact" />
+                  </div>
+                </ScrollReveal>
+              </div>
+            </div>
+          </section>
+
+          {/* FOOTER */}
+          <footer style={s.footer}>
+            <div style={{ ...s.wrap, ...s.footerInner }}>
+              <span style={s.footerText}>© 2026 Paul Lazar</span>
+              <span style={s.footerText}>BTS SIO SLAM</span>
+              <a className="footer-link" style={s.footerText} href={LINKEDIN} target="_blank" rel="noopener">LinkedIn ↗</a>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
